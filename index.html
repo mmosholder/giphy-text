@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <title>Giphy API</title>
+
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css">
+    <link rel="stylesheet" type="text/css" href="style.css">
+</head>
+
+<body>
+
+    <div id = "DisplayButtons">
+
+    </div>
+
+    <form id="submission-form">
+        <label for="NewButton">Add Button</label>
+        <input type="text" id="NewButton"><br>
+
+        <!-- Button triggers new movie to be added -->
+        <input id="add-Button" type="submit" value="Add Button">
+    </form>
+
+    <br><hr><br>
+
+    <div id = "DisplayGifs">
+
+    </div>
+</body>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+<script type="text/javascript">
+
+  var topics = ["baseball","hockey","football","basketball","Pittsburgh Penguins","Stanley Cup", "Superbowl Champions","Sidney Crosby"];
+  var buttons = $('button');
+
+  initializeButtons();
+
+  $("#add-Button").on("click", function() {
+
+          event.preventDefault();
+
+          var newTopic = $("#NewButton").val().trim();
+          topics.push(newTopic);
+
+
+          console.log(topics);
+
+          renderButtons(newTopic);
+
+
+  });
+
+
+  function initializeButtons () {
+      for (i = 0; i < topics.length; i++) {
+          var addButton = $("<button>");
+          var topicName = topics[i];
+          addButton.addClass("button btn-primary");
+          addButton.attr("topic-Name", topicName);
+          addButton.text(topicName);
+          $("#DisplayButtons").append(addButton);
+      }
+
+      clickButton();
+  }
+
+  function renderButtons (newTopic)
+  {
+      //Add button for each item in array
+        var addButton = $("<button>");
+        var topicName = newTopic;
+        addButton.addClass("button btn-primary");
+        addButton.attr("topic-Name", topicName);
+        addButton.text(topicName);
+        $("#DisplayButtons").append(addButton);
+
+        clickButton()
+  }
+
+
+function clickButton() {
+  $("button").bind("click", function () {
+      event.preventDefault();
+      // In this case, the "this" keyword refers to the button that was clicked
+      var thisTopic = $(this).attr("topic-Name");
+      console.log(thisTopic);
+      // Constructing a URL to search Giphy for the name of the person who said the quote
+      var queryURL = "https://api.giphy.com/v1/gifs/search?q=" + thisTopic + "&api_key=dc6zaTOxFJmzC&limit=10";
+
+      console.log(queryURL);
+
+
+      $.ajax({
+          url: queryURL,
+          method: "GET"
+      })
+
+      // After the data from the AJAX request comes back
+          .done(function (response) {
+
+              var results = response.data;
+
+              loopData(results);
+          })
+      })
+    }
+
+    function loopData(results) {
+      console.log('looping data')
+      // Results refers to the response.data from the ajax call passed down when you call the function above
+      for (i = 0; i < results.length; i++) {
+        // Creating and storing an image tag
+        var image = $("<img>");
+
+        var animate = results[i].images.fixed_height.url;
+        var still = results[i].images.fixed_height_still.url;
+
+        image.attr("src", animate);
+        image.addClass("gif");
+        image.attr("alt", "topic-image");
+        image.attr("data-still", still);
+        image.attr("data-animate", animate);
+        image.attr("current", "animate");
+
+
+        $("#DisplayGifs").prepend(image);
+        $("#DisplayGifs").prepend("</br>");
+      }
+
+      imageClick()
+    }
+
+    function imageClick() {
+      $("img").bind("click", function() {
+          // The attr jQuery method allows us to get or set the value of any attribute on our HTML element
+          console.log("GIF CLICKED");
+          var state = $(this).attr("current");
+          // If the clicked image's state is still, update its src attribute to what its data-animate value is.
+          // Then, set the image's data-state to animate
+          // Else set src to the data-still value
+          if (state === "animate") {
+              $(this).attr("src", $(this).attr("data-still"));
+              $(this).attr("current", "still");
+          } else {
+              $(this).attr("src", $(this).attr("data-animate"));
+              $(this).attr("current", "animate");
+          }
+      });
+    }
+
+
+</script>
+</body>
+
+</html>
